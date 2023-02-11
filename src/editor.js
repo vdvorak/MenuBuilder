@@ -65,7 +65,6 @@ function renderPage(data, pageIndex) {
   data.sections.forEach((sectionData, i) =>
     renderSection(pageIndex, sectionData, i, page)
   )
-
   return page
 }
 
@@ -89,8 +88,10 @@ function renderSection(pageIndex, data, sectionIndex, page) {
   beforeIsServingContainer.append(beforeIsServing, beforeIsServingLabel)
   beforeIsServingLabel.innerText = "První sloupec je porce"
   beforeIsServing.type = "checkbox"
+  beforeIsServing.checked = data.beforeAsServing
   beforeIsServing.onchange = (e) => {
     _pages[pageIndex].sections[sectionIndex].beforeAsServing = e.target.checked
+    console.log(_pages)
   }
   section.appendChild(beforeIsServingContainer)
 
@@ -111,7 +112,6 @@ function renderItem(data) {
       )
     )
   )
-
   return item
 }
 

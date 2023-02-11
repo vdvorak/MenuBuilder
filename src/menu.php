@@ -1,5 +1,5 @@
 <?php
-header('Content-Type','text/html; charset=utf-8');
+header('Content-Type','application/pdf; charset=utf-8');
 
 $json = file_get_contents("php://input");
 $pages = json_decode($json)->pages;
@@ -15,7 +15,7 @@ class Menu extends tFPDF {
   function header() {
       $this->SetX(15);
       $this->_SetFont();
-      $this->Image('logo.png', LOGO_POSITION, 10, -85);
+  //    $this->Image('logo.png', LOGO_POSITION, 10, -85);
       $this->Cell(0,10, HEADER);
       $this->Ln(13);
   }
@@ -62,11 +62,12 @@ for ($pageIndex=0; $pageIndex < count($pages); ++$pageIndex) {
 
           $spacing=6;
           // Before
-          // if($section->beforeAsServing){
-          //   $pdf->_SetFont(5);
-          // } else {
-          //   $pdf->_SetFont(9);
-          // }
+          if($section->beforeAsServing) {
+            $pdf->SetX(10);
+            $pdf->_SetFont(6);
+          } else {
+            $pdf->_SetFont(9);
+          }      
           $pdf->Cell(10,$spacing,$item->before,0,0, 'L');
 
           // Label
@@ -94,10 +95,10 @@ for ($pageIndex=0; $pageIndex < count($pages); ++$pageIndex) {
   }
 }
 
-
-$pdf->Output($_SERVER["DOCUMENT_ROOT"].'/menu.pdf', 'F');
-
 $attachment_location = $_SERVER["DOCUMENT_ROOT"] . "/menu.pdf";
+$pdf->Output($attachment_location, 'F');
+
+
 if (!file_exists($attachment_location)) {
   die("Error: File not found.");
 }
