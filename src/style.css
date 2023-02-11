@@ -1,0 +1,68 @@
+:root {
+  --clr-green-dark: #04aa6d;
+  --clr-green-light: #40ad85;
+  --clr-red-dark: #c03;
+  --clr-red-light: rgb(215, 50, 91);
+}
+
+.controlls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.page {
+  width: 60rem;
+  border: 1px solid black;
+  padding: 1rem 5px;
+  margin: 3rem auto;
+  text-align: center;
+}
+
+.page > input,
+button {
+  font-size: 24px;
+}
+
+.section {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  width: 100%;
+}
+.section > input {
+  width: 60%;
+}
+.section > input,
+button {
+  font-size: 18px;
+}
+
+.item {
+  display: grid;
+  flex-direction: row;
+  grid-template-columns: 8% 70% 9% 8% 5%;
+  position: relative;
+  margin: 0.5rem 0;
+}
+
+.before {
+}
+
+.title {
+}
+
+.alergens {
+  text-align: center;
+  background-color: #e6e6e6;
+}
+
+.price {
+  text-align: center;
+}
+
+.unit {
+  text-align: center;
+}
