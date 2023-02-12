@@ -41,13 +41,15 @@ function init() {
 function set(pages) {
   _pages = pages
   render()
+  createJson()
+  document.getElementById("save").append(document.createElement("br"))
+  createTxt()
 }
 
 function render() {
   content.innerHTML = ""
 
   _pages.forEach((page, i) => content.appendChild(renderPage(page, i)))
-  createJson()
 }
 
 function renderPage(data, pageIndex) {
@@ -198,7 +200,38 @@ function createText() {
   link.setAttribute("download", "menu")
   link.innerText = "Export"
 
-  document.getElementById("save").innerHTML = ""
+  document.getElementById("save").appendChild(link)
+}
+
+function createTxt() {
+  const link = document.createElement("a")
+  let data = ""
+  link.innerText = "TXT"
+
+  _pages.forEach((page, i) => {
+    data += (i > 0 ? "\n\n\n" : "") + page.title + "\n\n"
+    page.sections.forEach((section, j) => {
+      data += (j > 0 ? "\n\n" : "") + section.title + "\n\n"
+      section.items.forEach((item) => {
+        data += `${item.before} ${item.title}\n`
+      })
+    })
+  })
+  data +=
+    "\n\n\nAlergeny: 1.Lepek, 2.Korýši, 3.Vejce, 4.Ryby, 5.Arašídy, 6.Sója, 7.Mléko, 8.Skořábkové plody,\n"
+  data +=
+    "9.Celer, 10. hořčice, 11.Sezam, 12.Oxid siřičitý a siřičitany, 13.Vlčí bob,14.Měkkýši"
+
+  console.log("data", data)
+
+  const file = new Blob([data], { type: "text/plain" })
+
+  url = window.URL.createObjectURL(file)
+
+  link.setAttribute("href", url)
+  link.setAttribute("download", "menu")
+  link.innerText = "Txt"
+
   document.getElementById("save").appendChild(link)
 }
 
