@@ -36,19 +36,25 @@ function init() {
     .then((v) => set(v))
 
   loadBackups()
+  render()
+  update()
 }
 
-function set(pages) {
-  _pages = pages
-  render()
+function update() {
+  document.getElementById("save").innerHTML = ""
   createJson()
   document.getElementById("save").append(document.createElement("br"))
   createTxt()
 }
 
+function set(pages) {
+  _pages = pages
+  render()
+  update()
+}
+
 function render() {
   content.innerHTML = ""
-
   _pages.forEach((page, i) => content.appendChild(renderPage(page, i)))
 }
 
@@ -61,12 +67,24 @@ function renderPage(data, pageIndex) {
     addSection(pageIndex, "")
   }
 
-  page.appendChild(createInput(data, "title", "text", "Název stránky"))
+  page.appendChild(
+    createInput(_pages[pageIndex], "title", "text", "Název stránky")
+  )
   page.appendChild(addSectionButton)
 
   data.sections.forEach((sectionData, i) =>
     renderSection(pageIndex, sectionData, i, page)
   )
+
+  const deleteButton = document.createElement("button")
+  deleteButton.innerText = "X"
+  deleteButton.onclick = (e) => {
+    _pages.splice(pageIndex, 1)
+    update()
+    render()
+  }
+
+  page.prepend(deleteButton)
   return page
 }
 
@@ -75,7 +93,14 @@ function renderSection(pageIndex, data, sectionIndex, page) {
 
   section.classList.add("section")
 
-  section.appendChild(createInput(data, "title", "text", "Název sekce"))
+  section.appendChild(
+    createInput(
+      _pages[pageIndex].sections[sectionIndex],
+      "title",
+      "text",
+      "Název sekce"
+    )
+  )
   page.appendChild(section)
 
   const addItemButton = document.createElement("button")
@@ -93,27 +118,49 @@ function renderSection(pageIndex, data, sectionIndex, page) {
   beforeIsServing.checked = data.beforeAsServing
   beforeIsServing.onchange = (e) => {
     _pages[pageIndex].sections[sectionIndex].beforeAsServing = e.target.checked
-    console.log(_pages)
+    update()
   }
   section.appendChild(beforeIsServingContainer)
 
-  data.items.forEach((itemData) => page.appendChild(renderItem(itemData, page)))
+  const deleteButton = document.createElement("button")
+  deleteButton.innerText = "X"
+  deleteButton.onclick = (e) => {
+    _pages[pageIndex].sections.splice(sectionIndex, 1)
+    update()
+    render()
+  }
+
+  section.appendChild(deleteButton)
+
+  data.items.forEach((itemData, i) =>
+    page.appendChild(renderItem(pageIndex, sectionIndex, i, itemData))
+  )
 }
 
-function renderItem(data) {
+function renderItem(pageIndex, sectionIndex, index, data) {
   const item = document.createElement("div")
   item.classList.add("item")
 
   Object.keys(data).forEach((key) =>
     item.appendChild(
       createInput(
-        data,
+        _pages[pageIndex].sections[sectionIndex].items[index],
         FIELDS[key].name,
         FIELDS[key].type,
         FIELDS[key].placeholder || ""
       )
     )
   )
+
+  const deleteButton = document.createElement("button")
+  deleteButton.innerText = "X"
+  deleteButton.onclick = (e) => {
+    _pages[pageIndex].sections[sectionIndex].items.splice(index, 1)
+    update()
+    render()
+  }
+
+  item.appendChild(deleteButton)
   return item
 }
 
@@ -123,9 +170,9 @@ function createInput(obj, prop, type = "text", placeholder = "") {
   input.value = obj[prop]
   input.classList.add(prop)
   input.placeholder = placeholder
-  input.onchange = function (e) {
+  input.oninput = (e) => {
     obj[prop] = e.target.value
-    render()
+    update()
   }
   return input
 }
@@ -169,6 +216,7 @@ function addItem(
   function onReaderLoad(event) {
     _pages = JSON.parse(event.target.result)
     render()
+    update()
   }
 
   document.getElementById("import").addEventListener("change", onChange)
@@ -185,7 +233,6 @@ function createJson(filename = "menu") {
   link.setAttribute("download", filename)
   link.innerText = "Export"
 
-  document.getElementById("save").innerHTML = ""
   document.getElementById("save").appendChild(link)
 }
 
@@ -213,7 +260,7 @@ function createTxt() {
     page.sections.forEach((section, j) => {
       data += (j > 0 ? "\n\n" : "") + section.title + "\n\n"
       section.items.forEach((item) => {
-        data += `${item.before} ${item.title}\n`
+        data += `${item.before} ${item.title} ${item.alergens}\n`
       })
     })
   })
@@ -221,8 +268,6 @@ function createTxt() {
     "\n\n\nAlergeny: 1.Lepek, 2.Korýši, 3.Vejce, 4.Ryby, 5.Arašídy, 6.Sója, 7.Mléko, 8.Skořábkové plody,\n"
   data +=
     "9.Celer, 10. hořčice, 11.Sezam, 12.Oxid siřičitý a siřičitany, 13.Vlčí bob,14.Měkkýši"
-
-  console.log("data", data)
 
   const file = new Blob([data], { type: "text/plain" })
 

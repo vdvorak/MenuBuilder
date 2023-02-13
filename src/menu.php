@@ -8,13 +8,14 @@ error_reporting(-1);
 require_once($_SERVER["DOCUMENT_ROOT"].'/tfpdf/tfpdf.php');
 
 define("LOGO_POSITION", 130);
-define("HEADER", "Restaurace U Trávníčka - Polední Menu");
 
 class Menu extends tFPDF {
   public $shiftedHeader = false;
+  public $pageTitle = "";
+
   function header() {
      if(!$this->shiftedHeader) {
-      $this->renderHeader();
+        $this->renderHeader();
      }
   }
 
@@ -32,17 +33,17 @@ class Menu extends tFPDF {
 
   function renderHeader() {
    
-    $this->_SetFont();
+    $this->_SetFont(16);
     $this->SetX(15);
 
     if($this->shiftedHeader) {
       $this->Ln(25);
       $this->Cell(5);
-      $this->Cell(50,10, HEADER);
+      $this->Cell(50,10, $this->pageTitle);
       $this->Image('../logo.png', LOGO_POSITION - 6, 18, -130);
     } else {
       $this->Image('../logo.png', LOGO_POSITION - 6, 10, -130);
-      $this->Cell(0,10, HEADER);
+      $this->Cell(0,10, $this->pageTitle);
       $this->Ln(8);
     }
   
@@ -55,6 +56,7 @@ $pdf->SetFont('arial_uni','',10);
 
 for ($pageIndex=0; $pageIndex < count($pages); ++$pageIndex) {
   $page = $pages[$pageIndex];
+  $pdf->pageTitle =  $page->title;
   $sections = $page->sections;
   $pdf->shiftedHeader = count($sections) < 3;
 
@@ -65,7 +67,6 @@ for ($pageIndex=0; $pageIndex < count($pages); ++$pageIndex) {
   // Page title
   $pdf->SetX(15);
   $pdf->_SetFont(12);
-  $pdf->Cell(0,0,$page->title,0,1);
 
   
   for ($sectionIndex=0; $sectionIndex < count($sections); ++$sectionIndex) {

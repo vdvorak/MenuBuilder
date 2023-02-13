@@ -43,7 +43,7 @@ button {
 .item {
   display: grid;
   flex-direction: row;
-  grid-template-columns: 8% 70% 9% 8% 5%;
+  grid-template-columns: 8% 65% 9% 8% 5% 5%;
   position: relative;
   margin: 0.5rem 0;
 }
