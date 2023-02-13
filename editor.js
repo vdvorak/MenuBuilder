@@ -281,7 +281,7 @@ function createTxt() {
 }
 
 function createPDF() {
-  fetch("src/menu.php", {
+  fetch("menu.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
@@ -299,7 +299,7 @@ function createPDF() {
 }
 
 function createBackup() {
-  fetch("src/backup.php", {
+  fetch("backup.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
@@ -322,7 +322,7 @@ function restoreFromBackup() {
     return
   }
 
-  fetch("src/backup.php", {
+  fetch("backup.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
@@ -338,7 +338,7 @@ function restoreFromBackup() {
 }
 
 function loadBackups() {
-  fetch("src/backup.php", {
+  fetch("backup.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
