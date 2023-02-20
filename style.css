@@ -5,13 +5,10 @@
   --clr-red-light: rgb(215, 50, 91);
 }
 
-.controlls {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
+.block {
+  display: block;
 }
+
 .page {
   width: 60rem;
   border: 1px solid black;
@@ -23,6 +20,32 @@
 .page > input,
 button {
   font-size: 24px;
+}
+
+.controlls {
+  position: fixed;
+  top: 0;
+  z-index: 1;
+  background-color: white;
+  border-bottom: 1px solid gray;
+  width: 100%;
+}
+
+.controlls-conteiner {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 60rem;
+  margin: 0 auto;
+}
+
+.controlls-conteiner * {
+  margin-left: 1rem;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .section {

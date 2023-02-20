@@ -1,19 +1,6 @@
 const content = document.getElementById("content")
-
 const backupSelect = document.getElementById("backup")
-const autobackup = document.getElementById("autobackup")
-let backuper = null
 const BACKUP_DELAY = 300000
-
-autobackup.onchange = () => {
-  if (autobackup.checked) {
-    backuper = setInterval(() => {
-      createBackup()
-    }, BACKUP_DELAY)
-  } else {
-    clearInterval(backuper)
-  }
-}
 
 const FIELDS = {
   before: {
@@ -32,24 +19,28 @@ init()
 
 function init() {
   fetch("menu.json")
-    .then((response) => response.json())
+    .then((r) => r.json())
     .then((v) => set(v))
 
   loadBackups()
-  render()
   update()
 }
 
+function autobackup() {
+  setInterval(() => {
+    createBackup()
+  }, BACKUP_DELAY)
+}
+
 function update() {
-  document.getElementById("save").innerHTML = ""
   createJson()
-  document.getElementById("save").append(document.createElement("br"))
   createTxt()
+  render()
+  console.log(_pages)
 }
 
 function set(pages) {
   _pages = pages
-  render()
   update()
 }
 
@@ -77,11 +68,10 @@ function renderPage(data, pageIndex) {
   )
 
   const deleteButton = document.createElement("button")
-  deleteButton.innerText = "X"
+  deleteButton.innerText = "x"
   deleteButton.onclick = (e) => {
     _pages.splice(pageIndex, 1)
     update()
-    render()
   }
 
   page.prepend(deleteButton)
@@ -123,11 +113,10 @@ function renderSection(pageIndex, data, sectionIndex, page) {
   section.appendChild(beforeIsServingContainer)
 
   const deleteButton = document.createElement("button")
-  deleteButton.innerText = "X"
+  deleteButton.innerText = "x"
   deleteButton.onclick = (e) => {
     _pages[pageIndex].sections.splice(sectionIndex, 1)
     update()
-    render()
   }
 
   section.appendChild(deleteButton)
@@ -139,7 +128,7 @@ function renderSection(pageIndex, data, sectionIndex, page) {
 
 function renderItem(pageIndex, sectionIndex, index, data) {
   const item = document.createElement("div")
-  item.classList.add("item")
+  item.classList.add("item", `item-${data.before}`)
 
   Object.keys(data).forEach((key) =>
     item.appendChild(
@@ -153,18 +142,17 @@ function renderItem(pageIndex, sectionIndex, index, data) {
   )
 
   const deleteButton = document.createElement("button")
-  deleteButton.innerText = "X"
+  deleteButton.innerText = "x"
   deleteButton.onclick = (e) => {
     _pages[pageIndex].sections[sectionIndex].items.splice(index, 1)
     update()
-    render()
   }
 
   item.appendChild(deleteButton)
   return item
 }
 
-function createInput(obj, prop, type = "text", placeholder = "") {
+function createInput(obj, prop, type, placeholder) {
   const input = document.createElement("input")
   input.type = type
   input.value = obj[prop]
@@ -179,12 +167,12 @@ function createInput(obj, prop, type = "text", placeholder = "") {
 
 function addPage(title) {
   _pages.push({ title, sections: [] })
-  render()
+  update()
 }
 
 function addSection(pageIndex, title) {
   _pages[pageIndex].sections.push({ title, beforeAsServing: false, items: [] })
-  render()
+  update()
 }
 
 function addItem(
@@ -203,7 +191,28 @@ function addItem(
     price,
     unit,
   })
-  render()
+  update()
+}
+
+function setGlobalPrice() {
+  const id = document.getElementById("global-price-id").value
+  const price = document.getElementById("global-price").value
+
+  _pages.forEach((page) =>
+    page.sections.forEach((section) =>
+      section.items.forEach((item) => {
+        if (
+          item.before &&
+          item.before.toString().trim().toLowerCase() ==
+            id.toString().trim().toLowerCase()
+        ) {
+          item.price = parseFloat(price)
+        }
+      })
+    )
+  )
+
+  update()
 }
 
 ;(function () {
@@ -215,46 +224,22 @@ function addItem(
 
   function onReaderLoad(event) {
     _pages = JSON.parse(event.target.result)
-    render()
     update()
   }
 
   document.getElementById("import").addEventListener("change", onChange)
 })()
 
-function createJson(filename = "menu") {
+function createJson() {
   blob = new Blob([JSON.stringify(_pages)], {
     type: "application/json;charset=utf-8;",
   })
   url = window.URL.createObjectURL(blob)
-  const link = document.createElement("a")
-
-  link.setAttribute("href", url)
-  link.setAttribute("download", filename)
-  link.innerText = "Export"
-
-  document.getElementById("save").appendChild(link)
-}
-
-function createText() {
-  blob = new Blob([JSON.stringify(_pages)], {
-    type: "text/plain;charset=utf-8;",
-  })
-  url = window.URL.createObjectURL(blob)
-  const link = document.createElement("a")
-
-  link.setAttribute("href", url)
-  link.setAttribute("download", "menu")
-  link.innerText = "Export"
-
-  document.getElementById("save").appendChild(link)
+  document.getElementById("export-json").href = url
 }
 
 function createTxt() {
-  const link = document.createElement("a")
   let data = ""
-  link.innerText = "TXT"
-
   _pages.forEach((page, i) => {
     data += (i > 0 ? "\n\n\n" : "") + page.title + "\n\n"
     page.sections.forEach((section, j) => {
@@ -264,20 +249,29 @@ function createTxt() {
       })
     })
   })
+
   data +=
     "\n\n\nAlergeny: 1.Lepek, 2.Korýši, 3.Vejce, 4.Ryby, 5.Arašídy, 6.Sója, 7.Mléko, 8.Skořábkové plody,\n"
   data +=
     "9.Celer, 10. hořčice, 11.Sezam, 12.Oxid siřičitý a siřičitany, 13.Vlčí bob,14.Měkkýši"
 
   const file = new Blob([data], { type: "text/plain" })
-
   url = window.URL.createObjectURL(file)
+  document.getElementById("export-txt").href = url
+}
 
-  link.setAttribute("href", url)
-  link.setAttribute("download", "menu")
-  link.innerText = "Txt"
-
-  document.getElementById("save").appendChild(link)
+function uploadResults() {
+  fetch("menu.php", {
+    method: "POST",
+    headers: {
+      "Content-type": "application/json",
+    },
+    body: JSON.stringify({
+      requestId: "upload",
+    }),
+  })
+    .then((res) => {})
+    .catch((error) => console.log(error))
 }
 
 function createPDF() {
@@ -288,11 +282,12 @@ function createPDF() {
     },
     body: JSON.stringify({
       pages: _pages,
+      requestId: "create",
     }),
   })
     .then((res) => {
       if (res.status == 200) {
-        window.open("../menu.pdf", "_blank")
+        window.open("menu.pdf", "_blank")
       }
     })
     .catch((error) => console.log(error))
