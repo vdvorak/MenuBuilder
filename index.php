@@ -18,10 +18,8 @@
       "
     >
       <div class="controlls">
+        <div id="status"></div>
         <div class="controlls-conteiner">
-          <button onclick="restoreFromBackup()">Obnovit ze zálohy</button>
-          <select id="backup"></select>
-
           <div id="publish">
             <a href="#" download="menu" class="block" id="export-json"
               >Export</a

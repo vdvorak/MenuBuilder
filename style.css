@@ -89,3 +89,15 @@ button {
 .unit {
   text-align: center;
 }
+
+.success {
+  color: green;
+  font-weight: 500;
+  padding: 1rem;
+}
+
+.error {
+  color: red;
+  padding: 1rem;
+  font-weight: 500;
+}

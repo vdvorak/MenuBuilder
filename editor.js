@@ -1,6 +1,6 @@
 const content = document.getElementById("content")
-const backupSelect = document.getElementById("backup")
-const BACKUP_DELAY = 300000
+const statusBar = document.getElementById("status")
+const AUTOSAVE = 10000
 
 const FIELDS = {
   before: {
@@ -18,25 +18,15 @@ let _pages = []
 init()
 
 function init() {
-  fetch("menu.json")
-    .then((r) => r.json())
-    .then((v) => set(v))
-
-  loadBackups()
+  load()
   update()
+  setInterval(save, AUTOSAVE)
 }
 
-function autobackup() {
-  setInterval(() => {
-    createBackup()
-  }, BACKUP_DELAY)
-}
-
-function update() {
+function update(observer = true) {
   createJson()
   createTxt()
-  render()
-  console.log(_pages)
+  observer && render()
 }
 
 function set(pages) {
@@ -128,7 +118,7 @@ function renderSection(pageIndex, data, sectionIndex, page) {
 
 function renderItem(pageIndex, sectionIndex, index, data) {
   const item = document.createElement("div")
-  item.classList.add("item", `item-${data.before}`)
+  item.classList.add("item")
 
   Object.keys(data).forEach((key) =>
     item.appendChild(
@@ -160,14 +150,16 @@ function createInput(obj, prop, type, placeholder) {
   input.placeholder = placeholder
   input.oninput = (e) => {
     obj[prop] = e.target.value
-    update()
+    update(false)
   }
+
   return input
 }
 
 function addPage(title) {
   _pages.push({ title, sections: [] })
   update()
+  render()
 }
 
 function addSection(pageIndex, title) {
@@ -231,6 +223,7 @@ function setGlobalPrice() {
 })()
 
 function createJson() {
+  save()
   blob = new Blob([JSON.stringify(_pages)], {
     type: "application/json;charset=utf-8;",
   })
@@ -239,6 +232,7 @@ function createJson() {
 }
 
 function createTxt() {
+  save()
   let data = ""
   _pages.forEach((page, i) => {
     data += (i > 0 ? "\n\n\n" : "") + page.title + "\n\n"
@@ -260,21 +254,8 @@ function createTxt() {
   document.getElementById("export-txt").href = url
 }
 
-function uploadResults() {
-  fetch("menu.php", {
-    method: "POST",
-    headers: {
-      "Content-type": "application/json",
-    },
-    body: JSON.stringify({
-      requestId: "upload",
-    }),
-  })
-    .then((res) => {})
-    .catch((error) => console.log(error))
-}
-
 function createPDF() {
+  save()
   fetch("menu.php", {
     method: "POST",
     headers: {
@@ -287,14 +268,17 @@ function createPDF() {
   })
     .then((res) => {
       if (res.status == 200) {
-        window.open("menu.pdf", "_blank")
+        window.open(
+          `${window.location.protocol}//${window.location.host}/menu.pdf`,
+          "_blank"
+        )
       }
     })
     .catch((error) => console.log(error))
 }
 
-function createBackup() {
-  fetch("backup.php", {
+function save() {
+  fetch("state.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
@@ -305,54 +289,35 @@ function createBackup() {
     }),
   })
     .then((res) => res.json())
-    .then((res) => console.log(res))
-    .catch((error) => console.log(error))
+    .then((res) => {
+      if (res == "success") {
+        statusBar.classList.remove("error")
+        statusBar.classList.add("success")
 
-  loadBackups()
+        statusBar.innerText = "Proběhlo automatické uložení."
+      } else {
+        statusBar.classList.remove("success")
+        statusBar.classList.add("error")
+        statusBar.innerText = "Nepovedlo se provést automatické uložení."
+      }
+      setTimeout(() => {
+        statusBar.innerText = ""
+      }, 3000)
+    })
+    .catch((error) => console.log(error))
 }
 
-function restoreFromBackup() {
-  const filename = backupSelect.options[backupSelect.selectedIndex].text
-  if (!filename || backupSelect.selectedIndex == 0) {
-    return
-  }
-
-  fetch("backup.php", {
+function load() {
+  fetch("state.php", {
     method: "POST",
     headers: {
       "Content-type": "application/json",
     },
     body: JSON.stringify({
       requestId: "download",
-      filename: filename,
     }),
   })
     .then((res) => res.json())
     .then((res) => set(res))
-    .catch((error) => console.log(error))
-}
-
-function loadBackups() {
-  fetch("backup.php", {
-    method: "POST",
-    headers: {
-      "Content-type": "application/json",
-    },
-    body: JSON.stringify({
-      requestId: "list",
-    }),
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      backupSelect.innerHTML =
-        "<option disabled selected value>Nezvoleno</option>"
-
-      Object.values(res).forEach((o) => {
-        const option = document.createElement("option")
-        option.value = o
-        option.text = o
-        backupSelect.appendChild(option)
-      })
-    })
     .catch((error) => console.log(error))
 }
